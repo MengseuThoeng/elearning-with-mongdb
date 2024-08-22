@@ -1,0 +1,8 @@
+#spring.application.name=e-learning
+spring:
+  application:
+    name: e-learning
+
+  data:
+    mongodb:
+      uri: mongodb://localhost:27017/e-learning
