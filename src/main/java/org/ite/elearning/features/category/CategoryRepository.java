@@ -15,4 +15,6 @@ public interface CategoryRepository extends MongoRepository<Category, String> {
     List<Category> findAllINotDeleted();
 
     Optional<Category> findByIdAndIsDeletedIsFalse(String id);
+
+    Boolean existsByNameAndIsDeletedIsFalse(String name);
 }
