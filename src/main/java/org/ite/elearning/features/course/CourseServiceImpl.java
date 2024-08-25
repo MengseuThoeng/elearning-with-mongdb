@@ -3,15 +3,16 @@ package org.ite.elearning.features.course;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.ite.elearning.domain.Category;
 import org.ite.elearning.domain.Course;
 import org.ite.elearning.features.category.CategoryRepository;
 import org.ite.elearning.features.course.dto.CourseCreateRequest;
+import org.ite.elearning.features.course.dto.CourseDetailResponse;
 import org.ite.elearning.features.course.dto.CourseSnippetResponse;
+import org.ite.elearning.mapper.CourseMapper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -26,30 +27,88 @@ public class CourseServiceImpl implements CourseService {
 
     private final CourseRepository courseRepository;
 
+    private final CourseMapper courseMapper;
+
     private final CategoryRepository categoryRepository;
 
+
     @Override
-    public Page<CourseSnippetResponse> findAllCourse(int page, int size) {
-        Pageable pageable = PageRequest.of(page, size);
+    public void disableCourse(String id) {
+        Course course = courseRepository.findById(id).orElseThrow(
+                ()-> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND,
+                        "Course not found..!"
+                )
+        );
+        course.setIsDeleted(true);
+        courseRepository.save(course);
+    }
 
-        return courseRepository.findAll(pageable)
-                .map(course -> new CourseSnippetResponse(
-                        course.getId(),
-                        course.getTitle(),
-                        course.getSlug(),
-                        course.getDescription(),
-                        course.getThumbnail(),
-                        course.getPrice(),
-                        course.getDiscount(),
-                        course.getCode(),
-                        course.getIsPaid(),
-                        course.getIsDraft(),
-                        course.getInstructorName(),
-                        course.getCategoryName(),
-                        course.getCreatedAt(),
-                        course.getUpdatedAt()
-                ));
+    @Override
+    public void enableCourse(String id) {
+        Course course = courseRepository.findById(id).orElseThrow(
+                ()-> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND,
+                        "Course not found..!"
+                )
+        );
+        course.setIsDeleted(false);
+        courseRepository.save(course);
+    }
 
+    @Override
+    public void updateVisibility(String id, Boolean visibility) {
+        Course course = courseRepository.findById(id).orElseThrow(
+                ()-> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND,
+                        "Course not found..!"
+                )
+        );
+        course.setIsDraft(visibility);
+        courseRepository.save(course);
+    }
+
+    @Override
+    public void deleteCourseById(String id) {
+        Course course = courseRepository.findById(id).orElseThrow(
+                ()-> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND,
+                        "Course not found..!"
+                )
+        );
+        courseRepository.delete(course);
+    }
+
+    @Override
+    public ResponseEntity<?> findByCourseById(String id, String response) {
+
+        Course course = courseRepository.findById(id).orElseThrow(
+                () -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND,
+                        "Course not found..!"
+                )
+        );
+
+        if (response.equals("COURSE_DETAIL")) {
+            CourseDetailResponse detailResponse = courseMapper.toCourseDetailResponse(course);
+            return new ResponseEntity<>(detailResponse,HttpStatus.OK);
+        }
+
+        CourseSnippetResponse snippetResponse = courseMapper.toCourseSnippetResponse(course);
+        return new ResponseEntity<>(snippetResponse,HttpStatus.OK);
+    }
+
+    @Override
+    public Page<?> findAllCourse(int page, int size, String response) {
+        PageRequest pageRequest = PageRequest.of(page, size);
+
+        Page<Course> findAllCourses = courseRepository.findAllByIsDeletedIsFalseAndIsDraftIsFalse(pageRequest);
+
+        if (response.equals("COURSE_DETAIL")) {
+            return findAllCourses.map(courseMapper::toCourseDetailResponse);
+        }
+
+        return findAllCourses.map(courseMapper::toCourseSnippetResponse);
     }
 
 
