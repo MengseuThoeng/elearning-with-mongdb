@@ -1,10 +1,10 @@
 package org.ite.elearning.domain;
 
 
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
+@AllArgsConstructor
+@Builder
 @NoArgsConstructor
 @Getter
 @Setter

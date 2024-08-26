@@ -3,6 +3,7 @@ package org.ite.elearning.features.category;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.ite.elearning.features.category.dto.CategoryCreateRequest;
+import org.ite.elearning.features.category.dto.CategoryPopularDTO;
 import org.ite.elearning.features.category.dto.CategoryResponse;
 import org.ite.elearning.features.category.dto.CategoryUpdateRequest;
 import org.springframework.http.HttpStatus;
@@ -55,5 +56,10 @@ public class CategoryController {
     @PutMapping("/{id}")
     void updateCategory(@PathVariable String id, @Valid @RequestBody CategoryUpdateRequest categoryUpdateRequest) {
         categoryService.updateCategory(id, categoryUpdateRequest);
+    }
+
+    @GetMapping("/popular")
+    List<CategoryPopularDTO> getPopularCategories() {
+        return categoryService.getPopularCategories();
     }
 }

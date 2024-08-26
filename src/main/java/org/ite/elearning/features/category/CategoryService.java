@@ -2,6 +2,7 @@ package org.ite.elearning.features.category;
 
 import org.ite.elearning.domain.Category;
 import org.ite.elearning.features.category.dto.CategoryCreateRequest;
+import org.ite.elearning.features.category.dto.CategoryPopularDTO;
 import org.ite.elearning.features.category.dto.CategoryResponse;
 import org.ite.elearning.features.category.dto.CategoryUpdateRequest;
 
@@ -22,4 +23,6 @@ public interface CategoryService {
     CategoryResponse getCategoryById(String id);
 
     void updateCategory(String id, CategoryUpdateRequest categoryUpdateRequest);
+
+    List<CategoryPopularDTO> getPopularCategories();
 }

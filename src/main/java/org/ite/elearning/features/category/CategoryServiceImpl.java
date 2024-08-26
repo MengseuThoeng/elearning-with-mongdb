@@ -4,13 +4,17 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.ite.elearning.domain.Category;
 import org.ite.elearning.features.category.dto.CategoryCreateRequest;
+import org.ite.elearning.features.category.dto.CategoryPopularDTO;
 import org.ite.elearning.features.category.dto.CategoryResponse;
 import org.ite.elearning.features.category.dto.CategoryUpdateRequest;
+import org.ite.elearning.features.course.CourseRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -19,6 +23,33 @@ public class CategoryServiceImpl implements CategoryService {
 
     private final CategoryRepository categoryRepository;
 
+    private final CourseRepository courseRepository;
+
+
+    @Override
+    public List<CategoryPopularDTO> getPopularCategories() {
+
+        // Fetch all categories
+        List<Category> categories = categoryRepository.findAll();
+
+        // Count the number of courses per category
+        Map<String, Long> categoryCourseCounts = categories.stream()
+                .collect(Collectors.toMap(
+                        Category::getName,
+                        category -> (long) courseRepository.findAllByCategoryNameAndIsDeletedIsFalse(category.getName()).size()
+                ));
+
+        // Create CategoryPopularDTO from the counts
+        return categories.stream()
+                .map(category -> new CategoryPopularDTO(
+                        category.getId(),
+                        category.getName(),
+                        category.getIcon(),
+                        categoryCourseCounts.getOrDefault(category.getName(), 0L).intValue()
+                ))
+                .sorted((c1, c2) -> c2.totalCourse().compareTo(c1.totalCourse())) // Sort by popularity (most courses first)
+                .collect(Collectors.toList());
+    }
 
     @Override
     public CategoryResponse getCategoryById(String id) {
