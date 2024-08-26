@@ -155,6 +155,16 @@ public class CourseController {
             @RequestParam(required = false) String orders,
             @RequestParam(defaultValue = "COURSE_SNIPPET") Response response
     ) {
-        return courseService.advancedSearchCourse(page, size, filterAnd, filterOr, orders, response.name());
+        return courseService.advancedSearchCourseParam(page, size, filterAnd, filterOr, orders, response.name());
+    }
+
+    @PostMapping("/advancedSearch/body")
+    Page<?> advancedSearchCourse(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @Valid @RequestBody FilterDTO filterDTO,
+            @RequestParam(defaultValue = "COURSE_SNIPPET") Response response
+    ) {
+        return courseService.advancedSearchCourseRequestBody(page, size, filterDTO, response.name());
     }
 }

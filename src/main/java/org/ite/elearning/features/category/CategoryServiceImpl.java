@@ -29,17 +29,14 @@ public class CategoryServiceImpl implements CategoryService {
     @Override
     public List<CategoryPopularDTO> getPopularCategories() {
 
-        // Fetch all categories
         List<Category> categories = categoryRepository.findAll();
 
-        // Count the number of courses per category
         Map<String, Long> categoryCourseCounts = categories.stream()
                 .collect(Collectors.toMap(
                         Category::getName,
                         category -> (long) courseRepository.findAllByCategoryNameAndIsDeletedIsFalse(category.getName()).size()
                 ));
 
-        // Create CategoryPopularDTO from the counts
         return categories.stream()
                 .map(category -> new CategoryPopularDTO(
                         category.getId(),
@@ -47,7 +44,7 @@ public class CategoryServiceImpl implements CategoryService {
                         category.getIcon(),
                         categoryCourseCounts.getOrDefault(category.getName(), 0L).intValue()
                 ))
-                .sorted((c1, c2) -> c2.totalCourse().compareTo(c1.totalCourse())) // Sort by popularity (most courses first)
+                .sorted((c1, c2) -> c2.totalCourse().compareTo(c1.totalCourse()))
                 .collect(Collectors.toList());
     }
 

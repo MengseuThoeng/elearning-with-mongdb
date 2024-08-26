@@ -1,7 +1,6 @@
 package org.ite.elearning.features.course;
 
 
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.ite.elearning.domain.Course;
@@ -20,11 +19,13 @@ import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -42,7 +43,56 @@ public class CourseServiceImpl implements CourseService {
 
 
     @Override
-    public Page<?> advancedSearchCourse(int page, int size, String filterAnd, String filterOr, String orders, String response) {
+    public Page<?> advancedSearchCourseRequestBody(int page, int size, FilterDTO filterDTO, String response) {
+
+        Query query = new Query();
+
+        // Add AND filters
+        if (filterDTO.filterAnd() != null && !filterDTO.filterAnd().isEmpty()) {
+            List<Criteria> andCriteria = parseFilterCriteria(filterDTO.filterAnd());
+            query.addCriteria(new Criteria().andOperator(andCriteria.toArray(new Criteria[0])));
+        }
+
+        // Add OR filters
+        if (filterDTO.filterOr() != null && !filterDTO.filterOr().isEmpty()) {
+            List<Criteria> orCriteria = parseFilterCriteria(filterDTO.filterOr());
+            query.addCriteria(new Criteria().orOperator(orCriteria.toArray(new Criteria[0])));
+        }
+
+        // Add sorting
+        if (filterDTO.orders() != null && !filterDTO.orders().isEmpty()) {
+            Sort sort = parseSortOrders(filterDTO.orders());
+            query.with(sort);
+        }
+
+        // Apply pagination
+        PageRequest pageRequest = PageRequest.of(page, size);
+        query.with(pageRequest);
+
+        // Execute query
+        if (response.equals("COURSE_DETAIL")) {
+            List<CourseDetailResponse> courses = mongoTemplate.find(query, Course.class)
+                    .stream()
+                    .map(courseMapper::toCourseDetailResponse)
+                    .collect(Collectors.toList());
+            long count = mongoTemplate.count(Query.of(query).limit(-1).skip(-1), Course.class);
+            return new PageImpl<>(courses, pageRequest, count);
+        }
+
+        List<CourseSnippetResponse> courses = mongoTemplate.find(query, Course.class)
+                .stream()
+                .map(courseMapper::toCourseSnippetResponse)
+                .collect(Collectors.toList());
+
+        // Clone query for count operation to avoid conflict
+        Query countQuery = Query.of(query).limit(-1).skip(-1);
+        long count = mongoTemplate.count(countQuery, Course.class);
+
+        return new PageImpl<>(courses, pageRequest, count);
+    }
+
+    @Override
+    public Page<?> advancedSearchCourseParam(int page, int size, String filterAnd, String filterOr, String orders, String response) {
         log.info("Searching students with filterAnd: {}, filterOr: {}, orders: {}", filterAnd, filterOr, orders);
 
         Query query = new Query();

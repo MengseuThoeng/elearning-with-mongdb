@@ -46,6 +46,8 @@ public interface CourseService {
 
     List<CourseDetailResponse> findAllCourseByInstructorName(String instructorName);
 
-    Page<?> advancedSearchCourse(int page, int size, String filterAnd, String filterOr, String orders, String response);
+    Page<?> advancedSearchCourseParam(int page, int size, String filterAnd, String filterOr, String orders, String response);
+
+    Page<?> advancedSearchCourseRequestBody(int page, int size, FilterDTO filterDTO, String response);
 
 }
