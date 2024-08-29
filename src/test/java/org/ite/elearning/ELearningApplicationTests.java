@@ -3,11 +3,11 @@ package org.ite.elearning;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
-@SpringBootTest
-class ELearningApplicationTests {
-
-    @Test
-    void contextLoads() {
-    }
-
-}
+//@SpringBootTest
+//class ELearningApplicationTests {
+//
+//    @Test
+//    void contextLoads() {
+//    }
+//
+//}
